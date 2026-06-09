@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Earn Ultra</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #080c14;
+  --bg2: #0d1420;
+  --bg3: #111927;
+  --accent: #00e5ff;
+  --accent2: #0070ff;
+  --green: #00ff88;
+  --red: #ff4444;
+  --yellow: #ffd700;
+  --text: #e8f0fe;
+  --muted: #6b7fa3;
+  --card: rgba(255,255,255,0.04);
+  --border: rgba(0,229,255,0.15);
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', -apple-system, sans-serif;
+  min-height: 100vh;
+  max-width: 480px;
+  margin: 0 auto;
+  padding-bottom: 80px;
+}
+/* Header */
+.header {
+  background: linear-gradient(135deg, #0d1420, #0a1628);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  backdrop-filter: blur(20px);
+}
+.header-logo { font-size: 1.3rem; font-weight: 800; }
+.header-logo span { color: var(--accent); }
+.header-user { font-size: 0.8rem; color: var(--muted); text-align: right; }
+.header-user strong { color: var(--text); font-size: 0.9rem; display: block; }
+
+/* Tabs */
+.tabs {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 480px;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  display: flex; z-index: 200;
+}
+.tab {
+  flex: 1; padding: 10px 4px; text-align: center;
+  cursor: pointer; transition: all 0.2s;
+  border: none; background: none; color: var(--muted);
+  font-size: 0.65rem; font-weight: 600;
+}
+.tab .tab-icon { font-size: 1.3rem; display: block; margin-bottom: 2px; }
+.tab.active { color: var(--accent); }
+.tab.active .tab-icon { filter: drop-shadow(0 0 6px var(--accent)); }
+
+/* Pages */
+.page { display: none; padding: 0; animation: fadeIn 0.2s ease; }
+.page.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ===== HOME PAGE ===== */
+.hero {
+  background: linear-gradient(135deg, #0d1b2a, #0a2040);
+  padding: 28px 20px;
+  position: relative; overflow: hidden;
+}
+.hero::before {
+  content: ''; position: absolute; top: -50px; right: -50px;
+  width: 200px; height: 200px;
+  background: radial-gradient(circle, #00e5ff15, transparent);
+  border-radius: 50%;
+}
+.balance-label { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+.balance-amount {
+  font-size: 2.8rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  line-height: 1;
+}
+.balance-symbol { font-size: 1.8rem; font-weight: 800; }
+.balance-sub { color: var(--muted); font-size: 0.8rem; margin-top: 6px; }
+
+.hero-actions { margin-top: 20px; display: flex; gap: 10px; }
+.btn-primary {
+  flex: 1; padding: 14px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #000; font-weight: 700; font-size: 0.9rem;
+  border: none; border-radius: 14px; cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px #00e5ff33; }
+.btn-secondary {
+  flex: 1; padding: 14px;
+  background: rgba(0,229,255,0.1);
+  color: var(--accent); font-weight: 700; font-size: 0.9rem;
+  border: 1px solid var(--border); border-radius: 14px; cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { background: rgba(0,229,255,0.2); }
+
+/* Cards */
+.section { padding: 20px; }
+.section-title { font-size: 0.8rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px; padding: 16px;
+  margin-bottom: 12px;
+}
+.invite-card {
+  background: linear-gradient(135deg, rgba(0,229,255,0.08), rgba(0,112,255,0.08));
+  border-color: rgba(0,229,255,0.25);
+}
+.invite-card .invite-code {
+  font-family: monospace; font-size: 0.85rem;
+  color: var(--accent); margin: 8px 0;
+  background: rgba(0,229,255,0.1); padding: 10px 14px;
+  border-radius: 10px; display: flex; align-items: center; justify-content: space-between;
+}
+.copy-btn {
+  background: none; border: none; cursor: pointer;
+  color: var(--accent); font-size: 1rem;
+}
+.invite-bonus {
+  font-size: 0.75rem; color: var(--muted); margin-top: 4px;
+}
+.invite-bonus strong { color: var(--green); }
+.share-btn {
+  width: 100%; margin-top: 12px; padding: 12px;
+  background: linear-gradient(135deg, #00ff8822, #00ff8833);
+  color: var(--green); font-weight: 700; font-size: 0.9rem;
+  border: 1px solid #00ff8844; border-radius: 12px; cursor: pointer;
+  transition: all 0.2s;
+}
+.share-btn:hover { background: rgba(0,255,136,0.2); }
+
+.stats-row { display: flex; gap: 12px; }
+.stat-card {
+  flex: 1; background: var(--card);
+  border: 1px solid var(--border); border-radius: 14px;
+  padding: 14px; text-align: center;
+}
+.stat-val { font-size: 1.4rem; font-weight: 700; }
+.stat-lbl { font-size: 0.7rem; color: var(--muted); margin-top: 2px; }
+
+/* ===== LEADERBOARD ===== */
+.lb-tabs { display: flex; padding: 16px 20px 0; gap: 8px; }
+.lb-tab {
+  padding: 8px 20px;
+  border-radius: 50px; font-size: 0.85rem; font-weight: 600;
+  cursor: pointer; border: 1px solid var(--border);
+  background: none; color: var(--muted); transition: all 0.2s;
+}
+.lb-tab.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #000; border-color: transparent;
+}
+.lb-content { padding: 16px 20px; }
+.lb-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; margin-bottom: 8px;
+  transition: all 0.2s;
+}
+.lb-item.me { border-color: rgba(0,229,255,0.4); background: rgba(0,229,255,0.06); }
+.lb-rank {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 700; color: var(--muted); flex-shrink: 0;
+}
+.lb-rank.gold { background: rgba(255,215,0,0.2); color: var(--yellow); }
+.lb-rank.silver { background: rgba(192,192,192,0.2); color: #ccc; }
+.lb-rank.bronze { background: rgba(205,127,50,0.2); color: #cd7f32; }
+.lb-name { flex: 1; font-weight: 600; font-size: 0.9rem; }
+.lb-name small { display: block; color: var(--muted); font-size: 0.75rem; font-weight: 400; }
+.lb-count { font-weight: 700; color: var(--accent); font-size: 0.9rem; }
+
+/* ===== WITHDRAWAL ===== */
+.wd-page { padding: 20px; }
+.wd-balance {
+  text-align: center; padding: 24px;
+  background: linear-gradient(135deg, rgba(0,229,255,0.08), rgba(0,112,255,0.08));
+  border: 1px solid var(--border); border-radius: 20px; margin-bottom: 20px;
+}
+.wd-balance .label { font-size: 0.8rem; color: var(--muted); margin-bottom: 4px; }
+.wd-balance .amount {
+  font-size: 2.4rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.input-group { margin-bottom: 16px; }
+.input-label { font-size: 0.8rem; color: var(--muted); margin-bottom: 6px; display: block; }
+.input-field {
+  width: 100%; padding: 14px 16px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border); border-radius: 12px;
+  color: var(--text); font-size: 1rem; outline: none;
+  transition: border-color 0.2s;
+}
+.input-field:focus { border-color: var(--accent); }
+.input-field::placeholder { color: var(--muted); }
+.wd-info {
+  display: flex; justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(255,215,0,0.06); border: 1px solid rgba(255,215,0,0.2);
+  border-radius: 10px; font-size: 0.8rem; margin-bottom: 16px;
+}
+.wd-info span { color: var(--muted); }
+.wd-info strong { color: var(--yellow); }
+.wd-btn {
+  width: 100%; padding: 16px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #000; font-weight: 700; font-size: 1rem;
+  border: none; border-radius: 14px; cursor: pointer;
+  transition: all 0.2s;
+}
+.wd-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.toast {
+  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%);
+  padding: 12px 24px; border-radius: 50px; font-size: 0.9rem; font-weight: 600;
+  z-index: 999; animation: toastIn 0.3s ease; white-space: nowrap;
+}
+.toast.success { background: var(--green); color: #000; }
+.toast.error { background: var(--red); color: #fff; }
+@keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+/* ===== STATS ===== */
+.stats-page { padding: 20px; }
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.stat-box {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 16px; padding: 16px; text-align: center;
+}
+.stat-box .icon { font-size: 1.5rem; margin-bottom: 6px; }
+.stat-box .val { font-size: 1.3rem; font-weight: 700; }
+.stat-box .lbl { font-size: 0.7rem; color: var(--muted); }
+.history-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; margin-bottom: 8px;
+}
+.history-icon { font-size: 1.4rem; flex-shrink: 0; }
+.history-info { flex: 1; }
+.history-info .title { font-weight: 600; font-size: 0.9rem; }
+.history-info .sub { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+.history-amount { font-weight: 700; }
+.history-amount.debit { color: var(--red); }
+.history-amount.credit { color: var(--green); }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 50px; font-size: 0.65rem; font-weight: 700; }
+.badge.success { background: #00ff8820; color: var(--green); }
+.badge.failed { background: #ff444420; color: var(--red); }
+.badge.pending { background: #ffd70020; color: var(--yellow); }
+
+.empty { text-align: center; padding: 30px; color: var(--muted); font-size: 0.9rem; }
+
+/* Loading spinner */
+.loader {
+  display: flex; align-items: center; justify-content: center; padding: 40px;
+}
+.spinner {
+  width: 30px; height: 30px;
+  border: 3px solid rgba(0,229,255,0.2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: rotate 0.7s linear infinite;
+}
+@keyframes rotate { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-logo">Earn<span>Ultra</span> 🐚</div>
+  <div class="header-user">
+    <strong id="headerName">Loading...</strong>
+    <span id="headerBalance">₹0</span>
+  </div>
+</div>
+
+<!-- Pages -->
+<div id="page-home" class="page active">
+  <div class="hero">
+    <div class="balance-label">Available Balance</div>
+    <div class="balance-amount"><span class="balance-symbol">₹</span><span id="balanceAmount">0</span></div>
+    <div class="balance-sub">Total Withdrawn: <span id="totalWithdrawn">₹0</span></div>
+    <div class="hero-actions">
+      <button class="btn-primary" onclick="goTab('withdraw')">💸 Withdraw</button>
+      <button class="btn-secondary" onclick="shareInvite()">📤 Share Link</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Your Stats</div>
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-val" id="totalReferredHome">0</div>
+        <div class="stat-lbl">👥 Total Referrals</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="bonusPerRef">₹10</div>
+        <div class="stat-lbl">🎁 Per Referral</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Your Invite Link</div>
+    <div class="card invite-card">
+      <div style="font-size:0.8rem; color:var(--muted)">Share to earn per referral</div>
+      <div class="invite-code">
+        <span id="inviteLinkDisplay" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:240px;">Loading...</span>
+        <button class="copy-btn" onclick="copyInviteLink()">📋</button>
+      </div>
+      <div class="invite-bonus">Earn <strong id="inviteBonusDisplay">₹10</strong> for each verified referral!</div>
+      <button class="share-btn" onclick="shareInvite()">📤 Share Invite Link</button>
+    </div>
+  </div>
+</div>
+
+<!-- Leaderboard Page -->
+<div id="page-leaderboard" class="page">
+  <div class="lb-tabs">
+    <button class="lb-tab active" onclick="switchLbTab('global', this)">🌍 Global</button>
+    <button class="lb-tab" onclick="switchLbTab('mine', this)">👤 My Refers</button>
+  </div>
+
+  <div class="lb-content">
+    <div id="globalLeaderboard"></div>
+    <div id="myReferrals" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- Withdrawal Page -->
+<div id="page-withdraw" class="page">
+  <div class="wd-page">
+    <div class="wd-balance">
+      <div class="label">Available Balance</div>
+      <div class="amount">₹<span id="wdBalance">0</span></div>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">📱 Mobile Number (UPI/Phone Pe)</label>
+      <input type="tel" class="input-field" id="phoneInput" placeholder="Enter 10-digit number" maxlength="10">
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">💰 Amount (₹)</label>
+      <input type="number" class="input-field" id="amountInput" placeholder="Enter amount">
+    </div>
+
+    <div class="wd-info" id="wdInfo">
+      <span>Min: <strong id="minWd">₹50</strong></span>
+      <span>Max: <strong id="maxWd">₹5000</strong></span>
+      <span>Tax: <strong id="taxWd">0%</strong></span>
+    </div>
+    <div id="afterTaxInfo" style="margin-bottom:12px;padding:10px 14px;background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.2);border-radius:10px;font-size:0.8rem;display:none;">
+      You will receive: <strong id="receiveAmount" style="color:var(--green)">₹0</strong>
+    </div>
+
+    <button class="wd-btn" id="wdBtn" onclick="submitWithdrawal()">💸 Withdraw Now</button>
+
+    <div style="margin-top:20px;">
+      <div class="section-title" style="margin-bottom:12px;">Recent Withdrawals</div>
+      <div id="wdHistory"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Stats Page -->
+<div id="page-stats" class="page">
+  <div class="stats-page">
+    <div class="stat-grid">
+      <div class="stat-box">
+        <div class="icon">💰</div>
+        <div class="val" id="statsBalance">₹0</div>
+        <div class="lbl">Balance</div>
+      </div>
+      <div class="stat-box">
+        <div class="icon">📤</div>
+        <div class="val" id="statsWithdrawn">₹0</div>
+        <div class="lbl">Total Withdrawn</div>
+      </div>
+      <div class="stat-box">
+        <div class="icon">👥</div>
+        <div class="val" id="statsReferred">0</div>
+        <div class="lbl">Total Referred</div>
+      </div>
+      <div class="stat-box">
+        <div class="icon">📅</div>
+        <div class="val" id="statsJoined">-</div>
+        <div class="lbl">Joined</div>
+      </div>
+    </div>
+
+    <div class="section-title">Withdrawal History</div>
+    <div id="statsWdHistory" style="margin-bottom:20px;"></div>
+
+    <div class="section-title">Recent Referrals</div>
+    <div id="statsReferrals"></div>
+  </div>
+</div>
+
+<!-- Bottom Tabs -->
+<div class="tabs">
+  <button class="tab active" id="tab-home" onclick="goTab('home')">
+    <span class="tab-icon">🏠</span>HOME
+  </button>
+  <button class="tab" id="tab-leaderboard" onclick="goTab('leaderboard')">
+    <span class="tab-icon">🏆</span>LEADERBOARD
+  </button>
+  <button class="tab" id="tab-withdraw" onclick="goTab('withdraw')">
+    <span class="tab-icon">💸</span>WITHDRAW
+  </button>
+  <button class="tab" id="tab-stats" onclick="goTab('stats')">
+    <span class="tab-icon">📊</span>STATS
+  </button>
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const telegramId = params.get('tid');
+let userData = null, settings = null, currentLbTab = 'global';
+
+// Session auth
+async function initSession() {
+  const res = await fetch('/api/user');
+  if (res.status === 401) {
+    window.location.href = `/verify?tid=${telegramId}`;
+    return;
+  }
+  userData = await res.json();
+  if (userData.error) { window.location.href = `/verify?tid=${telegramId}`; return; }
+  renderHome();
+}
+
+// Check if we have session, if not login with tid
+async function boot() {
+  if (telegramId) {
+    // Try to get user, will use session if available
+    const res = await fetch('/api/user');
+    if (res.status === 401) {
+      // Need to reverify
+      window.location.href = `/verify?tid=${telegramId}`;
+      return;
+    }
+    userData = await res.json();
+  } else {
+    const res = await fetch('/api/user');
+    if (res.status === 401) {
+      window.location.href = '/';
+      return;
+    }
+    userData = await res.json();
+  }
+  if (userData.error) { window.location.href = '/'; return; }
+  renderHome();
+  loadSettings();
+}
+
+async function loadSettings() {
+  const res = await fetch('/api/withdrawal-settings');
+  settings = await res.json();
+  document.getElementById('minWd').textContent = '₹' + settings.minWithdrawal;
+  document.getElementById('maxWd').textContent = '₹' + settings.maxWithdrawal;
+  document.getElementById('taxWd').textContent = settings.withdrawalTax + '%';
+  if (!settings.withdrawalEnabled) {
+    document.getElementById('wdBtn').disabled = true;
+    document.getElementById('wdBtn').textContent = '🔒 Withdrawals Disabled';
+  }
+}
+
+function renderHome() {
+  if (!userData) return;
+  document.getElementById('headerName').textContent = userData.firstName || 'User';
+  document.getElementById('headerBalance').textContent = '₹' + userData.balance;
+  document.getElementById('balanceAmount').textContent = userData.balance;
+  document.getElementById('totalWithdrawn').textContent = '₹' + (userData.totalWithdrawn || 0);
+  document.getElementById('totalReferredHome').textContent = userData.totalReferred || 0;
+  document.getElementById('bonusPerRef').textContent = '₹' + (userData.inviteBonus || 10);
+  document.getElementById('inviteBonusDisplay').textContent = '₹' + (userData.inviteBonus || 10);
+  document.getElementById('inviteLinkDisplay').textContent = userData.inviteLink || '';
+  document.getElementById('wdBalance').textContent = userData.balance;
+  document.getElementById('statsBalance').textContent = '₹' + userData.balance;
+  document.getElementById('statsWithdrawn').textContent = '₹' + (userData.totalWithdrawn || 0);
+  document.getElementById('statsReferred').textContent = userData.totalReferred || 0;
+  document.getElementById('statsJoined').textContent = formatDate(userData.joinedAt);
+}
+
+function formatDate(d) {
+  if (!d) return '-';
+  return new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' });
+}
+
+function formatDateTime(d) {
+  if (!d) return '-';
+  return new Date(d).toLocaleString('en-IN', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
+function goTab(tab) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + tab).classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'leaderboard') loadLeaderboard();
+  if (tab === 'stats') loadStats();
+  if (tab === 'withdraw') loadWdHistory();
+}
+
+function switchLbTab(tab, el) {
+  currentLbTab = tab;
+  document.querySelectorAll('.lb-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('globalLeaderboard').style.display = tab === 'global' ? 'block' : 'none';
+  document.getElementById('myReferrals').style.display = tab === 'mine' ? 'block' : 'none';
+}
+
+async function loadLeaderboard() {
+  const res = await fetch('/api/leaderboard');
+  const data = await res.json();
+
+  const globalEl = document.getElementById('globalLeaderboard');
+  const myEl = document.getElementById('myReferrals');
+
+  if (!data.global || data.global.length === 0) {
+    globalEl.innerHTML = '<div class="empty">No data yet 🏆</div>';
+  } else {
+    globalEl.innerHTML = data.global.map((u, i) => {
+      const isMe = u.telegramId === (userData && userData.telegramId);
+      const medals = ['🥇','🥈','🥉'];
+      const rankClass = i < 3 ? ['gold','silver','bronze'][i] : '';
+      return `<div class="lb-item ${isMe ? 'me' : ''}">
+        <div class="lb-rank ${rankClass}">${i < 3 ? medals[i] : (i+1)}</div>
+        <div class="lb-name">
+          ${u.firstName || 'User'}
+          <small>@${u.username || 'N/A'}${isMe ? ' (You)' : ''}</small>
+        </div>
+        <div class="lb-count">👥 ${u.totalReferred}</div>
+      </div>`;
+    }).join('');
+  }
+
+  if (!data.myReferrals || data.myReferrals.length === 0) {
+    myEl.innerHTML = '<div class="empty">No referrals yet. Share your link! 🔗</div>';
+  } else {
+    myEl.innerHTML = data.myReferrals.map(u => `
+      <div class="lb-item">
+        <div class="lb-rank">👤</div>
+        <div class="lb-name">
+          ${u.firstName || 'User'}
+          <small>Joined ${formatDate(u.joinedAt)}</small>
+        </div>
+        <div class="lb-count" style="color:var(--green)">₹${u.balance || 0}</div>
+      </div>
+    `).join('');
+  }
+}
+
+async function loadStats() {
+  const res = await fetch('/api/stats');
+  const data = await res.json();
+
+  document.getElementById('statsBalance').textContent = '₹' + data.balance;
+  document.getElementById('statsWithdrawn').textContent = '₹' + data.totalWithdrawn;
+  document.getElementById('statsReferred').textContent = data.totalReferred;
+
+  const wdEl = document.getElementById('statsWdHistory');
+  if (!data.withdrawals || data.withdrawals.length === 0) {
+    wdEl.innerHTML = '<div class="empty">No withdrawals yet</div>';
+  } else {
+    wdEl.innerHTML = data.withdrawals.map(w => `
+      <div class="history-item">
+        <div class="history-icon">${w.status === 'success' ? '✅' : w.status === 'failed' ? '❌' : '⏳'}</div>
+        <div class="history-info">
+          <div class="title">₹${w.amountAfterTax?.toFixed(2) || w.amount} → ${w.phoneNumber}</div>
+          <div class="sub">${formatDateTime(w.createdAt)} <span class="badge ${w.status}">${w.status}</span></div>
+        </div>
+        <div class="history-amount debit">-₹${w.amount}</div>
+      </div>
+    `).join('');
+  }
+
+  const refEl = document.getElementById('statsReferrals');
+  if (!data.referrals || data.referrals.length === 0) {
+    refEl.innerHTML = '<div class="empty">No referrals yet</div>';
+  } else {
+    refEl.innerHTML = data.referrals.map(r => `
+      <div class="history-item">
+        <div class="history-icon">👤</div>
+        <div class="history-info">
+          <div class="title">${r.firstName || 'User'}</div>
+          <div class="sub">@${r.username || 'N/A'} • ${formatDate(r.joinedAt)}</div>
+        </div>
+        <div class="history-amount credit">+₹${userData.inviteBonus || 10}</div>
+      </div>
+    `).join('');
+  }
+}
+
+async function loadWdHistory() {
+  const res = await fetch('/api/stats');
+  const data = await res.json();
+  const el = document.getElementById('wdHistory');
+  if (!data.withdrawals || data.withdrawals.length === 0) {
+    el.innerHTML = '<div class="empty">No withdrawals yet</div>';
+  } else {
+    el.innerHTML = data.withdrawals.slice(0,5).map(w => `
+      <div class="history-item">
+        <div class="history-icon">${w.status === 'success' ? '✅' : w.status === 'failed' ? '❌' : '⏳'}</div>
+        <div class="history-info">
+          <div class="title">₹${w.amount} to ${w.phoneNumber}</div>
+          <div class="sub">${formatDateTime(w.createdAt)}</div>
+        </div>
+        <span class="badge ${w.status}">${w.status}</span>
+      </div>
+    `).join('');
+  }
+}
+
+// Update receive amount on input change
+document.getElementById('amountInput').addEventListener('input', function() {
+  const amt = parseFloat(this.value);
+  if (!amt || !settings) { document.getElementById('afterTaxInfo').style.display = 'none'; return; }
+  const tax = amt * (settings.withdrawalTax / 100);
+  const receive = (amt - tax).toFixed(2);
+  document.getElementById('receiveAmount').textContent = '₹' + receive;
+  document.getElementById('afterTaxInfo').style.display = 'flex';
+});
+
+async function submitWithdrawal() {
+  const phone = document.getElementById('phoneInput').value.trim();
+  const amount = parseFloat(document.getElementById('amountInput').value);
+
+  if (!phone || phone.length < 10) { showToast('❌ Enter valid phone number', 'error'); return; }
+  if (!amount || amount <= 0) { showToast('❌ Enter valid amount', 'error'); return; }
+
+  const btn = document.getElementById('wdBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Processing...';
+
+  try {
+    const res = await fetch('/api/withdraw', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount, phoneNumber: phone })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      showToast('✅ Withdrawal successful!', 'success');
+      userData.balance = data.newBalance;
+      renderHome();
+      document.getElementById('amountInput').value = '';
+      document.getElementById('afterTaxInfo').style.display = 'none';
+      loadWdHistory();
+    } else {
+      showToast('❌ ' + (data.error || 'Failed'), 'error');
+    }
+  } catch(e) {
+    showToast('❌ Network error', 'error');
+  }
+  btn.disabled = false;
+  btn.textContent = '💸 Withdraw Now';
+  if (settings && !settings.withdrawalEnabled) {
+    btn.disabled = true;
+    btn.textContent = '🔒 Withdrawals Disabled';
+  }
+}
+
+function copyInviteLink() {
+  const link = userData && userData.inviteLink;
+  if (!link) return;
+  navigator.clipboard.writeText(link).then(() => showToast('📋 Link copied!', 'success'));
+}
+
+function shareInvite() {
+  const link = userData && userData.inviteLink;
+  if (!link) return;
+  const text = `🚀 Join Earn Ultra and earn ₹${userData.inviteBonus || 10} per referral!\n\n${link}`;
+  if (navigator.share) {
+    navigator.share({ title: 'Earn Ultra', text, url: link });
+  } else {
+    navigator.clipboard.writeText(text).then(() => showToast('📋 Copied to clipboard!', 'success'));
+  }
+}
+
+function showToast(msg, type) {
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+boot();
+</script>
+</body>
+</html>

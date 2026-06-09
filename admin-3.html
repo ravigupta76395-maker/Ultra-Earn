@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel - Earn Ultra</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #080c14; --bg2: #0d1420; --bg3: #111927;
+  --accent: #00e5ff; --accent2: #0070ff;
+  --green: #00ff88; --red: #ff4444; --yellow: #ffd700;
+  --text: #e8f0fe; --muted: #6b7fa3;
+  --card: rgba(255,255,255,0.04); --border: rgba(0,229,255,0.15);
+}
+body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; min-height: 100vh; }
+
+/* Login */
+#loginPage {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.login-card {
+  background: var(--bg2); border: 1px solid var(--border); border-radius: 24px;
+  padding: 40px; max-width: 380px; width: 100%; text-align: center;
+}
+.login-card h2 { font-size: 1.5rem; margin-bottom: 8px; }
+.login-card p { color: var(--muted); font-size: 0.9rem; margin-bottom: 24px; }
+
+/* Main admin */
+#adminPage { display: none; }
+.admin-header {
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  padding: 16px 24px; display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.admin-header h1 { font-size: 1.2rem; font-weight: 800; }
+.admin-header h1 span { color: var(--accent); }
+
+.admin-nav {
+  display: flex; overflow-x: auto; gap: 0;
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  scrollbar-width: none;
+}
+.admin-nav::-webkit-scrollbar { display: none; }
+.nav-btn {
+  padding: 14px 20px; white-space: nowrap; font-size: 0.82rem; font-weight: 600;
+  cursor: pointer; border: none; background: none; color: var(--muted);
+  border-bottom: 2px solid transparent; transition: all 0.2s;
+}
+.nav-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+.admin-content { padding: 24px; max-width: 900px; margin: 0 auto; }
+.section-title { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+
+.card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 20px; margin-bottom: 16px; }
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 0.8rem; color: var(--muted); display: block; margin-bottom: 6px; }
+.form-input {
+  width: 100%; padding: 12px 14px;
+  background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+  border-radius: 10px; color: var(--text); font-size: 0.9rem; outline: none;
+}
+.form-input:focus { border-color: var(--accent); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+select.form-input option { background: #1a1a2e; }
+
+.btn-save {
+  padding: 12px 28px; background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #000; font-weight: 700; border: none; border-radius: 10px; cursor: pointer;
+  font-size: 0.9rem; transition: all 0.2s;
+}
+.btn-save:hover { opacity: 0.85; }
+.btn-danger {
+  padding: 12px 28px; background: linear-gradient(135deg, var(--red), #cc0000);
+  color: #fff; font-weight: 700; border: none; border-radius: 10px; cursor: pointer;
+  font-size: 0.9rem;
+}
+.btn-sm {
+  padding: 6px 14px; border-radius: 8px; font-size: 0.78rem; font-weight: 600;
+  cursor: pointer; border: none;
+}
+.btn-sm.green { background: rgba(0,255,136,0.15); color: var(--green); }
+.btn-sm.red { background: rgba(255,68,68,0.15); color: var(--red); }
+
+.toggle {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border); border-radius: 10px; cursor: pointer;
+  transition: all 0.2s; margin-bottom: 10px;
+}
+.toggle-label { flex: 1; font-weight: 600; font-size: 0.9rem; }
+.toggle-desc { font-size: 0.75rem; color: var(--muted); }
+.toggle-switch {
+  width: 44px; height: 24px; border-radius: 50px; position: relative;
+  transition: background 0.3s; flex-shrink: 0;
+}
+.toggle-switch.on { background: var(--accent); }
+.toggle-switch.off { background: rgba(255,255,255,0.15); }
+.toggle-knob {
+  position: absolute; top: 2px; width: 20px; height: 20px;
+  background: #fff; border-radius: 50%; transition: left 0.3s;
+}
+.toggle-switch.on .toggle-knob { left: 22px; }
+.toggle-switch.off .toggle-knob { left: 2px; }
+
+/* Tables */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+th { padding: 10px 12px; text-align: left; color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); }
+td { padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+tr:hover td { background: rgba(255,255,255,0.02); }
+
+.badge { display: inline-block; padding: 3px 10px; border-radius: 50px; font-size: 0.7rem; font-weight: 700; }
+.badge.success { background: #00ff8820; color: var(--green); }
+.badge.failed { background: #ff444420; color: var(--red); }
+.badge.pending { background: #ffd70020; color: var(--yellow); }
+.badge.on { background: #00ff8820; color: var(--green); }
+.badge.off { background: #ff444420; color: var(--red); }
+
+.stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 20px; }
+.stat-box { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 16px; text-align: center; }
+.stat-box .icon { font-size: 1.4rem; }
+.stat-box .val { font-size: 1.4rem; font-weight: 700; margin: 4px 0; }
+.stat-box .lbl { font-size: 0.7rem; color: var(--muted); }
+
+/* Channel list */
+.channel-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px;
+}
+.channel-item .name { flex: 1; font-weight: 600; font-size: 0.85rem; }
+.channel-item .id { font-size: 0.75rem; color: var(--muted); }
+
+.toast {
+  position: fixed; bottom: 24px; right: 24px;
+  padding: 12px 24px; border-radius: 50px; font-size: 0.85rem; font-weight: 600;
+  z-index: 999; animation: toastIn 0.3s;
+}
+.toast.success { background: var(--green); color: #000; }
+.toast.error { background: var(--red); color: #fff; }
+.toast.info { background: var(--accent); color: #000; }
+@keyframes toastIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="loginPage">
+  <div class="login-card">
+    <div style="font-size:2.5rem;margin-bottom:12px;">🛠</div>
+    <h2>Admin <span style="color:var(--accent)">Panel</span></h2>
+    <p>Enter your Telegram ID to access the admin panel</p>
+    <div class="form-group">
+      <input type="text" class="form-input" id="adminIdInput" placeholder="Your Telegram ID" style="text-align:center;font-size:1.1rem;padding:14px;">
+    </div>
+    <button class="btn-save" style="width:100%;padding:14px;" onclick="adminLogin()">🔐 Login</button>
+    <div id="loginError" style="margin-top:12px;color:var(--red);font-size:0.85rem;display:none;"></div>
+  </div>
+</div>
+
+<!-- Admin Panel -->
+<div id="adminPage">
+  <div class="admin-header">
+    <h1>Earn<span>Ultra</span> 🛠 Admin</h1>
+    <span id="adminStatus" style="font-size:0.8rem;color:var(--muted)">Loading...</span>
+  </div>
+
+  <div class="admin-nav">
+    <button class="nav-btn active" onclick="showTab('dashboard', this)">📊 Dashboard</button>
+    <button class="nav-btn" onclick="showTab('settings', this)">⚙️ Settings</button>
+    <button class="nav-btn" onclick="showTab('withdrawal-mgmt', this)">💸 Withdrawal</button>
+    <button class="nav-btn" onclick="showTab('channels', this)">📢 Channels</button>
+    <button class="nav-btn" onclick="showTab('users', this)">👥 Users</button>
+    <button class="nav-btn" onclick="showTab('withdrawals', this)">📋 W/D History</button>
+    <button class="nav-btn" onclick="showTab('broadcast', this)">📣 Broadcast</button>
+  </div>
+
+  <div class="admin-content">
+
+    <!-- Dashboard -->
+    <div class="tab-content active" id="tab-dashboard">
+      <div class="stats-grid">
+        <div class="stat-box"><div class="icon">👥</div><div class="val" id="dash-users">-</div><div class="lbl">Total Users</div></div>
+        <div class="stat-box"><div class="icon">✅</div><div class="val" id="dash-verified">-</div><div class="lbl">Verified</div></div>
+        <div class="stat-box"><div class="icon">💸</div><div class="val" id="dash-withdrawals">-</div><div class="lbl">Withdrawals</div></div>
+      </div>
+      <div class="card">
+        <div class="section-title">Quick Status</div>
+        <div id="quickStatus"></div>
+      </div>
+    </div>
+
+    <!-- Settings -->
+    <div class="tab-content" id="tab-settings">
+      <div class="card">
+        <div class="section-title">Bot Controls</div>
+        <div class="toggle" onclick="toggleSetting('botEnabled')">
+          <div><div class="toggle-label">🤖 Bot Status</div><div class="toggle-desc">Enable or disable the bot</div></div>
+          <div class="toggle-switch" id="toggle-botEnabled"><div class="toggle-knob"></div></div>
+        </div>
+        <div class="toggle" onclick="toggleSetting('withdrawalEnabled')">
+          <div><div class="toggle-label">💸 Withdrawals</div><div class="toggle-desc">Enable or disable withdrawals</div></div>
+          <div class="toggle-switch" id="toggle-withdrawalEnabled"><div class="toggle-knob"></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Verification Mode</div>
+        <div class="form-group">
+          <label class="form-label">Mode</label>
+          <select class="form-input" id="verificationMode">
+            <option value="device">📱 Device Verification (1 device = 1 account)</option>
+            <option value="captcha">🔐 Captcha Verification</option>
+            <option value="none">✅ No Verification</option>
+          </select>
+        </div>
+        <button class="btn-save" onclick="saveSingleSetting('verificationMode')">Save</button>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Payment API</div>
+        <div class="form-group">
+          <label class="form-label">Withdrawal API URL</label>
+          <input type="text" class="form-input" id="paymentApiUrl" placeholder="https://ultra-pay.store/APIs/api?token=...&paytoNumber={number}&amount={amount}">
+          <div style="font-size:0.75rem;color:var(--muted);margin-top:6px;">Use {number} and {amount} as placeholders</div>
+        </div>
+        <button class="btn-save" onclick="saveSingleSetting('paymentApiUrl')">Save API URL</button>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Payout Channel</div>
+        <div class="form-group">
+          <label class="form-label">Payout Channel ID (e.g. -1001234567890)</label>
+          <input type="text" class="form-input" id="payoutChannelId" placeholder="-1001234567890">
+        </div>
+        <button class="btn-save" onclick="saveSingleSetting('payoutChannelId')">Set Payout Channel</button>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Referral Settings</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Refer Amount (₹)</label>
+            <input type="number" class="form-input" id="referAmount" placeholder="10">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Invite Bonus (₹)</label>
+            <input type="number" class="form-input" id="inviteBonus" placeholder="10">
+          </div>
+        </div>
+        <button class="btn-save" onclick="saveReferSettings()">Save Refer Settings</button>
+      </div>
+    </div>
+
+    <!-- Withdrawal Management -->
+    <div class="tab-content" id="tab-withdrawal-mgmt">
+      <div class="card">
+        <div class="section-title">Withdrawal Limits</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Min Withdrawal (₹)</label>
+            <input type="number" class="form-input" id="minWithdrawal" placeholder="50">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Max Withdrawal (₹)</label>
+            <input type="number" class="form-input" id="maxWithdrawal" placeholder="5000">
+          </div>
+        </div>
+        <button class="btn-save" onclick="saveWithdrawalSettings()">Save Limits</button>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Tax & Cooldown</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Tax % (e.g. 10 = 10%)</label>
+            <input type="number" class="form-input" id="withdrawalTax" placeholder="0" min="0" max="100">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Cooldown (hours)</label>
+            <input type="number" class="form-input" id="withdrawalCooldown" placeholder="24" min="0">
+          </div>
+        </div>
+        <div style="font-size:0.8rem;color:var(--muted);margin-bottom:14px;">
+          Tax: If 10% tax set and user withdraws ₹10, they receive ₹9<br>
+          Cooldown: Per-user cooldown after each withdrawal
+        </div>
+        <button class="btn-save" onclick="saveTaxCooldown()">Save Tax & Cooldown</button>
+      </div>
+    </div>
+
+    <!-- Channels -->
+    <div class="tab-content" id="tab-channels">
+      <div class="card">
+        <div class="section-title">Add Channel</div>
+        <div class="form-group">
+          <label class="form-label">Channel ID (e.g. -1001234567890 or @channelname)</label>
+          <input type="text" class="form-input" id="newChannelId" placeholder="-1001234567890">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Channel Name</label>
+          <input type="text" class="form-input" id="newChannelName" placeholder="My Channel">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Channel Link (t.me/...)</label>
+          <input type="text" class="form-input" id="newChannelLink" placeholder="https://t.me/mychannel">
+        </div>
+        <button class="btn-save" onclick="addChannel()">+ Add Channel</button>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Required Channels</div>
+        <div id="channelsList"></div>
+      </div>
+    </div>
+
+    <!-- Users -->
+    <div class="tab-content" id="tab-users">
+      <div class="card">
+        <div class="section-title">Balance Management</div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Telegram ID</label>
+            <input type="text" class="form-input" id="balUserId" placeholder="User Telegram ID">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Amount (₹)</label>
+            <input type="number" class="form-input" id="balAmount" placeholder="Amount">
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;">
+          <button class="btn-save" onclick="manageBalance('add')">+ Add Balance</button>
+          <button class="btn-danger" onclick="manageBalance('remove')">- Remove Balance</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Users List</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Name</th><th>TG ID</th><th>Balance</th><th>Referred</th><th>Verified</th><th>Joined</th></tr>
+            </thead>
+            <tbody id="usersTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Withdrawals -->
+    <div class="tab-content" id="tab-withdrawals">
+      <div class="card">
+        <div class="section-title">Withdrawal History</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>User</th><th>Amount</th><th>Received</th><th>Number</th><th>Status</th><th>Date</th></tr>
+            </thead>
+            <tbody id="withdrawalsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Broadcast -->
+    <div class="tab-content" id="tab-broadcast">
+      <div class="card">
+        <div class="section-title">Broadcast to All Users (via Bot)</div>
+        <div class="form-group">
+          <label class="form-label">Message (Markdown supported)</label>
+          <textarea class="form-input" id="broadcastMsg" rows="5" placeholder="Your message here...&#10;*Bold* _italic_"></textarea>
+        </div>
+        <button class="btn-save" onclick="doBroadcast()">📣 Send Broadcast</button>
+        <div style="font-size:0.75rem;color:var(--muted);margin-top:8px;">This will send via Telegram bot to all users</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let currentSettings = {};
+
+async function adminLogin() {
+  const adminId = document.getElementById('adminIdInput').value.trim();
+  if (!adminId) return;
+  
+  const res = await fetch('/api/admin/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ telegramId: adminId })
+  });
+  const data = await res.json();
+  
+  if (data.success) {
+    document.getElementById('loginPage').style.display = 'none';
+    document.getElementById('adminPage').style.display = 'block';
+    loadDashboard();
+    loadSettings();
+    loadUsers();
+    loadWithdrawals();
+  } else {
+    const err = document.getElementById('loginError');
+    err.textContent = '❌ Unauthorized. Check your Telegram ID.';
+    err.style.display = 'block';
+  }
+}
+
+function showTab(tab, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  btn.classList.add('active');
+}
+
+async function loadDashboard() {
+  const [usersRes, wdRes] = await Promise.all([
+    fetch('/api/admin/users'),
+    fetch('/api/admin/withdrawals')
+  ]);
+  const users = await usersRes.json();
+  const wds = await wdRes.json();
+  
+  document.getElementById('dash-users').textContent = users.length;
+  document.getElementById('dash-verified').textContent = users.filter(u => u.verified).length;
+  document.getElementById('dash-withdrawals').textContent = wds.length;
+  
+  document.getElementById('adminStatus').textContent = `${users.length} users`;
+}
+
+async function loadSettings() {
+  const res = await fetch('/api/admin/settings');
+  currentSettings = await res.json();
+  
+  const fields = ['referAmount','inviteBonus','minWithdrawal','maxWithdrawal','withdrawalTax',
+    'withdrawalCooldown','paymentApiUrl','payoutChannelId','verificationMode'];
+  fields.forEach(f => {
+    const el = document.getElementById(f);
+    if (el && currentSettings[f] !== null && currentSettings[f] !== undefined) {
+      el.value = currentSettings[f];
+    }
+  });
+  
+  // Toggles
+  ['botEnabled','withdrawalEnabled'].forEach(key => {
+    const sw = document.getElementById('toggle-' + key);
+    if (sw) {
+      sw.className = 'toggle-switch ' + (currentSettings[key] ? 'on' : 'off');
+    }
+  });
+  
+  // Quick status
+  const qs = document.getElementById('quickStatus');
+  if (qs) {
+    qs.innerHTML = `
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        <span class="badge ${currentSettings.botEnabled ? 'on' : 'off'}">Bot: ${currentSettings.botEnabled ? 'ON' : 'OFF'}</span>
+        <span class="badge ${currentSettings.withdrawalEnabled ? 'on' : 'off'}">Withdrawal: ${currentSettings.withdrawalEnabled ? 'ON' : 'OFF'}</span>
+        <span class="badge success">Refer: ₹${currentSettings.referAmount}</span>
+        <span class="badge pending">Min WD: ₹${currentSettings.minWithdrawal}</span>
+        <span class="badge pending">Tax: ${currentSettings.withdrawalTax}%</span>
+        <span class="badge pending">Cooldown: ${currentSettings.withdrawalCooldown}h</span>
+      </div>
+    `;
+  }
+
+  // Channels
+  renderChannels(currentSettings.channels || []);
+}
+
+function renderChannels(channels) {
+  const el = document.getElementById('channelsList');
+  if (!el) return;
+  if (!channels.length) { el.innerHTML = '<div style="color:var(--muted);font-size:0.85rem;">No channels added</div>'; return; }
+  el.innerHTML = channels.map(c => `
+    <div class="channel-item">
+      <div>
+        <div class="name">📢 ${c.name}</div>
+        <div class="id">${c.id} • <a href="${c.link}" target="_blank" style="color:var(--accent)">${c.link}</a></div>
+      </div>
+      <button class="btn-sm red" onclick="removeChannel('${c.id}')">Remove</button>
+    </div>
+  `).join('');
+}
+
+async function addChannel() {
+  const id = document.getElementById('newChannelId').value.trim();
+  const name = document.getElementById('newChannelName').value.trim();
+  const link = document.getElementById('newChannelLink').value.trim();
+  if (!id || !name || !link) { showToast('Fill all channel fields', 'error'); return; }
+  
+  const channels = [...(currentSettings.channels || []), { id, name, link }];
+  await fetch('/api/admin/settings', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ channels })
+  });
+  currentSettings.channels = channels;
+  renderChannels(channels);
+  document.getElementById('newChannelId').value = '';
+  document.getElementById('newChannelName').value = '';
+  document.getElementById('newChannelLink').value = '';
+  showToast('Channel added!', 'success');
+}
+
+async function removeChannel(id) {
+  const channels = (currentSettings.channels || []).filter(c => c.id !== id);
+  await fetch('/api/admin/settings', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ channels })
+  });
+  currentSettings.channels = channels;
+  renderChannels(channels);
+  showToast('Channel removed', 'info');
+}
+
+async function toggleSetting(key) {
+  const newVal = !currentSettings[key];
+  currentSettings[key] = newVal;
+  const sw = document.getElementById('toggle-' + key);
+  if (sw) sw.className = 'toggle-switch ' + (newVal ? 'on' : 'off');
+  await fetch('/api/admin/settings', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ [key]: newVal })
+  });
+  showToast(key + ': ' + (newVal ? 'ON' : 'OFF'), 'success');
+  loadSettings();
+}
+
+async function saveSingleSetting(key) {
+  const val = document.getElementById(key).value;
+  await fetch('/api/admin/settings', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ [key]: val })
+  });
+  showToast('Saved!', 'success');
+  loadSettings();
+}
+
+async function saveReferSettings() {
+  const referAmount = parseFloat(document.getElementById('referAmount').value);
+  const inviteBonus = parseFloat(document.getElementById('inviteBonus').value);
+  await fetch('/api/admin/settings', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ referAmount, inviteBonus })
+  });
+  showToast('Refer settings saved!', 'success');
+  loadSettings();
+}
+
+async function saveWithdrawalSettings() {
+  const minWithdrawal = parseFloat(document.getElementById('minWithdrawal').value);
+  const maxWithdrawal = parseFloat(document.getElementById('maxWithdrawal').value);
+  await fetch('/api/admin/settings', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ minWithdrawal, maxWithdrawal })
+  });
+  showToast('Limits saved!', 'success');
+  loadSettings();
+}
+
+async function saveTaxCooldown() {
+  const withdrawalTax = parseFloat(document.getElementById('withdrawalTax').value) || 0;
+  const withdrawalCooldown = parseFloat(document.getElementById('withdrawalCooldown').value) || 0;
+  await fetch('/api/admin/settings', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ withdrawalTax, withdrawalCooldown })
+  });
+  showToast('Tax & cooldown saved!', 'success');
+  loadSettings();
+}
+
+async function manageBalance(action) {
+  const telegramId = document.getElementById('balUserId').value.trim();
+  const amount = parseFloat(document.getElementById('balAmount').value);
+  if (!telegramId || !amount) { showToast('Fill both fields', 'error'); return; }
+  
+  const res = await fetch('/api/admin/balance', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ telegramId, amount, action })
+  });
+  const data = await res.json();
+  if (data.success) {
+    showToast(`Balance ${action === 'add' ? 'added' : 'removed'}! New: ₹${data.newBalance}`, 'success');
+    loadUsers();
+  } else {
+    showToast(data.error || 'Failed', 'error');
+  }
+}
+
+async function loadUsers() {
+  const res = await fetch('/api/admin/users');
+  const users = await res.json();
+  const tb = document.getElementById('usersTable');
+  if (!tb) return;
+  tb.innerHTML = users.map(u => `
+    <tr>
+      <td>${u.firstName || ''} <span style="color:var(--muted)">@${u.username || '-'}</span></td>
+      <td style="font-family:monospace;font-size:0.75rem">${u.telegramId}</td>
+      <td style="color:var(--green)">₹${u.balance}</td>
+      <td>${u.totalReferred}</td>
+      <td><span class="badge ${u.verified ? 'success' : 'failed'}">${u.verified ? 'Yes' : 'No'}</span></td>
+      <td style="color:var(--muted)">${new Date(u.joinedAt).toLocaleDateString('en-IN')}</td>
+    </tr>
+  `).join('');
+}
+
+async function loadWithdrawals() {
+  const res = await fetch('/api/admin/withdrawals');
+  const wds = await res.json();
+  const tb = document.getElementById('withdrawalsTable');
+  if (!tb) return;
+  tb.innerHTML = wds.map(w => `
+    <tr>
+      <td>${w.username || w.telegramId}</td>
+      <td>₹${w.amount}</td>
+      <td style="color:var(--green)">₹${w.amountAfterTax?.toFixed(2) || '-'}</td>
+      <td>${w.phoneNumber}</td>
+      <td><span class="badge ${w.status}">${w.status}</span></td>
+      <td style="color:var(--muted)">${new Date(w.createdAt).toLocaleDateString('en-IN')}</td>
+    </tr>
+  `).join('');
+}
+
+async function doBroadcast() {
+  const msg = document.getElementById('broadcastMsg').value.trim();
+  if (!msg) { showToast('Enter a message', 'error'); return; }
+  showToast('⏳ Broadcasting...', 'info');
+  // This calls the bot which broadcasts - trigger via a manual bot command note
+  showToast('Use /broadcast in bot: /broadcast ' + msg.substring(0,20) + '...', 'info');
+}
+
+function showToast(msg, type) {
+  document.querySelectorAll('.toast').forEach(t => t.remove());
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// Enter to login
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('loginPage').style.display !== 'none') adminLogin();
+});
+</script>
+</body>
+</html>

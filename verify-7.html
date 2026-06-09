@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verify Device - Earn Ultra</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #0a0a1a 0%, #0d1b2a 60%, #0a1628 100%);
+  font-family: 'Segoe UI', sans-serif;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; padding: 20px;
+}
+.card {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(0,229,255,0.2);
+  border-radius: 24px;
+  padding: 40px 32px;
+  max-width: 400px; width: 100%;
+  text-align: center;
+  backdrop-filter: blur(20px);
+}
+.icon {
+  width: 80px; height: 80px;
+  background: radial-gradient(circle, #00e5ff22, #00e5ff44);
+  border: 2px solid #00e5ff66;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px; margin: 0 auto 20px;
+  animation: spin 3s linear infinite;
+}
+@keyframes spin {
+  0%,100% { box-shadow: 0 0 20px #00e5ff44; }
+  50% { box-shadow: 0 0 40px #00e5ff88; }
+}
+h2 { font-size: 1.5rem; font-weight: 700; margin-bottom: 8px; }
+p { color: #8899aa; font-size: 0.95rem; line-height: 1.6; margin-bottom: 24px; }
+.btn {
+  width: 100%; padding: 16px;
+  background: linear-gradient(135deg, #00e5ff, #0070ff);
+  color: #000; font-weight: 700; font-size: 1.05rem;
+  border: none; border-radius: 50px; cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.btn:hover { transform: translateY(-2px); box-shadow: 0 8px 30px #00e5ff44; }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.status {
+  margin-top: 16px; padding: 12px 16px;
+  border-radius: 12px; font-size: 0.9rem;
+  display: none;
+}
+.status.success { background: #00ff8822; color: #00ff88; border: 1px solid #00ff8844; display: block; }
+.status.error { background: #ff444422; color: #ff4444; border: 1px solid #ff444444; display: block; }
+.status.loading { background: #00e5ff22; color: #00e5ff; border: 1px solid #00e5ff44; display: block; }
+.progress { margin: 20px 0 0; }
+.progress-bar {
+  height: 4px; background: rgba(255,255,255,0.1);
+  border-radius: 4px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, #00e5ff, #0070ff);
+  transition: width 0.5s ease;
+  border-radius: 4px;
+}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="icon">🔒</div>
+  <h2>Secure Device Verification</h2>
+  <p>Tap the button below to quickly verify your device. It only takes a few seconds ⚡🔥<br><br><small style="color:#556">One device = One account</small></p>
+  <button class="btn" id="verifyBtn" onclick="verifyDevice()">⚡ Verify Device</button>
+  <div class="progress">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+  <div class="status" id="status"></div>
+</div>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const telegramId = params.get('tid');
+
+function showStatus(msg, type) {
+  const el = document.getElementById('status');
+  el.textContent = msg;
+  el.className = 'status ' + type;
+}
+
+function setProgress(pct) {
+  document.getElementById('progressFill').style.width = pct + '%';
+}
+
+async function getDeviceHash() {
+  const ua = navigator.userAgent;
+  const lang = navigator.language;
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const screen = `${window.screen.width}x${window.screen.height}x${window.screen.colorDepth}`;
+  const platform = navigator.platform || '';
+  const cores = navigator.hardwareConcurrency || 0;
+  const mem = navigator.deviceMemory || 0;
+  const raw = `${ua}|${lang}|${tz}|${screen}|${platform}|${cores}|${mem}`;
+  const buf = new TextEncoder().encode(raw);
+  const hash = await crypto.subtle.digest('SHA-256', buf);
+  return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function getIP() {
+  try {
+    const r = await fetch('https://api.ipify.org?format=json', { signal: AbortSignal.timeout(3000) });
+    const d = await r.json();
+    return d.ip;
+  } catch { return 'unknown'; }
+}
+
+async function verifyDevice() {
+  if (!telegramId) {
+    showStatus('❌ Invalid link. Open from Telegram bot.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('verifyBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Verifying...';
+  showStatus('🔄 Generating device fingerprint...', 'loading');
+  setProgress(20);
+
+  const deviceHash = await getDeviceHash();
+  setProgress(50);
+  showStatus('🌐 Getting location info...', 'loading');
+
+  const ipAddress = await getIP();
+  setProgress(75);
+  showStatus('📡 Submitting verification...', 'loading');
+
+  try {
+    const res = await fetch('/api/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ telegramId, deviceHash, ipAddress })
+    });
+    const data = await res.json();
+    setProgress(100);
+
+    if (data.success) {
+      showStatus('✅ Verification successful! Redirecting...', 'success');
+      btn.textContent = '✅ Verified!';
+      setTimeout(() => {
+        window.location.href = `/app?tid=${telegramId}`;
+      }, 1500);
+    } else {
+      showStatus('❌ ' + (data.error || 'Verification failed'), 'error');
+      btn.disabled = false;
+      btn.textContent = '⚡ Verify Device';
+      setProgress(0);
+    }
+  } catch(e) {
+    showStatus('❌ Network error. Please try again.', 'error');
+    btn.disabled = false;
+    btn.textContent = '⚡ Verify Device';
+    setProgress(0);
+  }
+}
+
+// Auto-start if tid present
+if (telegramId) {
+  // Show verify button ready
+}
+</script>
+</body>
+</html>

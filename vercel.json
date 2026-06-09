@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "server.js"
+    }
+  ],
+  "env": {
+    "BOT_TOKEN": "@bot_token",
+    "BOT_USERNAME": "EarnUltraMiniBot",
+    "MONGODB_URI": "@mongodb_uri",
+    "SESSION_SECRET": "@session_secret",
+    "ADMIN_ID": "@admin_id",
+    "BASE_URL": "@base_url"
+  }
+}
